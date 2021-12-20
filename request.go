@@ -45,25 +45,21 @@ type Request struct {
 // ReadRequest reads and parses a request from b.
 func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 
-	//var buffer bytes.Buffer
-	//for {
-	//	ba, isPrefix, err := b.Reader.ReadLine()
-	//	if err != nil {
-	//		fmt.Printf("error occured while readline: %s", err)
-	//		if err == io.EOF {
-	//			break
-	//		}
-	//		//return "", err
-	//	}
-	//
-	//	buffer.Write(ba)
-	//	if !isPrefix {
-	//		fmt.Printf("not prefix")
-	//		break
-	//	}
-	//}
-	//
-	//fmt.Printf("buffer is: %s\n", buffer.String())
+	var buffer bytes.Buffer
+	for {
+		ba, err := b.Reader.ReadBytes('\n')
+		if err != nil {
+			fmt.Printf("error occured while readline: %s", err)
+			if err == io.EOF {
+				break
+			}
+			//return "", err
+		}
+
+		buffer.Write(ba)
+	}
+
+	fmt.Printf("buffer is: %s\n", buffer.String())
 	tp := textproto.NewReader(b.Reader)
 	req = new(Request)
 
