@@ -10,6 +10,7 @@ package icap
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -46,19 +47,21 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 	for {
 		ba, isPrefix, err := b.Reader.ReadLine()
 		if err != nil {
+			fmt.Printf("error occured while readline: %s", err)
 			if err == io.EOF {
 				break
 			}
 			//return "", err
 		}
-		fmt.Printf("The ba is: %s\n", string(ba))
 
 		buffer.Write(ba)
 		if !isPrefix {
+			fmt.Printf("not prefix")
 			break
 		}
 	}
 
+	fmt.Printf("buffer is: %s\n", buffer.String())
 	//tp := textproto.NewReader(b.Reader)
 	//req = new(Request)
 	//
@@ -215,7 +218,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 	//	}
 	//}
 
-	return nil, nil
+	return nil, errors.New("a normal error when you do not know what you doing")
 }
 
 // An emptyReader is an io.ReadCloser that always returns os.EOF.
