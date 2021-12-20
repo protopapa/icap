@@ -12,12 +12,9 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/textproto"
 	"net/url"
-	"strconv"
-	"strings"
 )
 
 type badStringError struct {
@@ -44,162 +41,181 @@ type Request struct {
 
 // ReadRequest reads and parses a request from b.
 func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
-	tp := textproto.NewReader(b.Reader)
-	req = new(Request)
 
-	// Read first line.
-	var s string
-	var line []byte
-	line, err = b.Reader.ReadBytes('\n')
-	if err != nil {
-		if err == io.EOF {
-			err = io.ErrUnexpectedEOF
-		}
-		return nil, err
-	}
-	s = string(line)
-
-	f := strings.SplitN(s, " ", 3)
-	if len(f) < 3 {
-		return nil, &badStringError{"malformed ICAP request", s}
-	}
-	req.Method, req.RawURL, req.Proto = f[0], f[1], f[2]
-
-	req.URL, err = url.ParseRequestURI(req.RawURL)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header, err = tp.ReadMIMEHeader()
-	if err != nil {
-		return nil, err
-	}
-
-	s = req.Header.Get("Encapsulated")
-	if s == "" {
-		return req, nil // No HTTP headers or body.
-	}
-	eList := strings.Split(s, ", ")
-	var initialOffset, reqHdrLen, respHdrLen int
-	var hasBody bool
-	var prevKey string
-	var prevValue int
-	for _, item := range eList {
-		eq := strings.Index(item, "=")
-		if eq == -1 {
-			return nil, &badStringError{"malformed Encapsulated: header", s}
-		}
-		key := item[:eq]
-		value, err := strconv.Atoi(item[eq+1:])
+	var buffer bytes.Buffer
+	for {
+		ba, isPrefix, err := b.Reader.ReadLine()
 		if err != nil {
-			return nil, &badStringError{"malformed Encapsulated: header", s}
-		}
-
-		// Calculate the length of the previous section.
-		switch prevKey {
-		case "":
-			initialOffset = value
-		case "req-hdr":
-			reqHdrLen = value - prevValue
-		case "res-hdr":
-			respHdrLen = value - prevValue
-		case "req-body", "opt-body", "res-body", "null-body":
-			return nil, fmt.Errorf("%s must be the last section", prevKey)
-		}
-
-		switch key {
-		case "req-hdr", "res-hdr", "null-body":
-		case "req-body", "res-body", "opt-body":
-			hasBody = true
-		default:
-			return nil, &badStringError{"invalid key for Encapsulated: header", key}
-		}
-
-		prevValue = value
-		prevKey = key
-	}
-
-	// Read the HTTP headers.
-	var rawReqHdr, rawRespHdr []byte
-	if initialOffset > 0 {
-		junk := make([]byte, initialOffset)
-		_, err = io.ReadFull(b, junk)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if reqHdrLen > 0 {
-		rawReqHdr = make([]byte, reqHdrLen)
-		_, err = io.ReadFull(b, rawReqHdr)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if respHdrLen > 0 {
-		rawRespHdr = make([]byte, respHdrLen)
-		_, err = io.ReadFull(b, rawRespHdr)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	var bodyReader io.ReadCloser = emptyReader(0)
-	if hasBody {
-		if p := req.Header.Get("Preview"); p != "" {
-			moreBody := true
-			req.Preview, err = ioutil.ReadAll(newChunkedReader(b))
-			if err != nil {
-				if strings.Contains(err.Error(), "ieof") {
-					// The data ended with "0; ieof", which the HTTP chunked reader doesn't understand.
-					moreBody = false
-					err = nil
-				} else {
-					return nil, err
-				}
+			if err == io.EOF {
+				break
 			}
-			var r io.Reader = bytes.NewBuffer(req.Preview)
-			if moreBody {
-				r = io.MultiReader(r, &continueReader{buf: b})
-			}
-			bodyReader = ioutil.NopCloser(r)
-		} else {
-			bodyReader = ioutil.NopCloser(newChunkedReader(b))
+			//return "", err
+		}
+		fmt.Printf("The ba is: %s\n", string(ba))
+
+		buffer.Write(ba)
+		if !isPrefix {
+			break
 		}
 	}
 
-	// Construct the http.Request.
-	if rawReqHdr != nil {
-		req.Request, err = http.ReadRequest(bufio.NewReader(bytes.NewBuffer(rawReqHdr)))
-		if err != nil {
-			return nil, fmt.Errorf("error while parsing HTTP request: %v", err)
-		}
+	//tp := textproto.NewReader(b.Reader)
+	//req = new(Request)
+	//
+	//// Read first line.
+	//var s string
+	//var line []byte
+	//tp.ReadLine()
+	//line, err = b.Reader.ReadBytes('\n')
+	//if err != nil {
+	//	if err == io.EOF {
+	//		err = io.ErrUnexpectedEOF
+	//	}
+	//	return nil, err
+	//}
+	//s = string(line)
+	//
+	//f := strings.SplitN(s, " ", 3)
+	//if len(f) < 3 {
+	//	return nil, &badStringError{"malformed ICAP request", s}
+	//}
+	//req.Method, req.RawURL, req.Proto = f[0], f[1], f[2]
+	//
+	//req.URL, err = url.ParseRequestURI(req.RawURL)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//req.Header, err = tp.ReadMIMEHeader()
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//s = req.Header.Get("Encapsulated")
+	//if s == "" {
+	//	return req, nil // No HTTP headers or body.
+	//}
+	//eList := strings.Split(s, ", ")
+	//var initialOffset, reqHdrLen, respHdrLen int
+	//var hasBody bool
+	//var prevKey string
+	//var prevValue int
+	//for _, item := range eList {
+	//	eq := strings.Index(item, "=")
+	//	if eq == -1 {
+	//		return nil, &badStringError{"malformed Encapsulated: header", s}
+	//	}
+	//	key := item[:eq]
+	//	value, err := strconv.Atoi(item[eq+1:])
+	//	if err != nil {
+	//		return nil, &badStringError{"malformed Encapsulated: header", s}
+	//	}
+	//
+	//	// Calculate the length of the previous section.
+	//	switch prevKey {
+	//	case "":
+	//		initialOffset = value
+	//	case "req-hdr":
+	//		reqHdrLen = value - prevValue
+	//	case "res-hdr":
+	//		respHdrLen = value - prevValue
+	//	case "req-body", "opt-body", "res-body", "null-body":
+	//		return nil, fmt.Errorf("%s must be the last section", prevKey)
+	//	}
+	//
+	//	switch key {
+	//	case "req-hdr", "res-hdr", "null-body":
+	//	case "req-body", "res-body", "opt-body":
+	//		hasBody = true
+	//	default:
+	//		return nil, &badStringError{"invalid key for Encapsulated: header", key}
+	//	}
+	//
+	//	prevValue = value
+	//	prevKey = key
+	//}
+	//
+	//// Read the HTTP headers.
+	//var rawReqHdr, rawRespHdr []byte
+	//if initialOffset > 0 {
+	//	junk := make([]byte, initialOffset)
+	//	_, err = io.ReadFull(b, junk)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//}
+	//if reqHdrLen > 0 {
+	//	rawReqHdr = make([]byte, reqHdrLen)
+	//	_, err = io.ReadFull(b, rawReqHdr)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//}
+	//if respHdrLen > 0 {
+	//	rawRespHdr = make([]byte, respHdrLen)
+	//	_, err = io.ReadFull(b, rawRespHdr)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//}
+	//
+	//var bodyReader io.ReadCloser = emptyReader(0)
+	//if hasBody {
+	//	if p := req.Header.Get("Preview"); p != "" {
+	//		moreBody := true
+	//		req.Preview, err = ioutil.ReadAll(newChunkedReader(b))
+	//		if err != nil {
+	//			if strings.Contains(err.Error(), "ieof") {
+	//				// The data ended with "0; ieof", which the HTTP chunked reader doesn't understand.
+	//				moreBody = false
+	//				err = nil
+	//			} else {
+	//				return nil, err
+	//			}
+	//		}
+	//		var r io.Reader = bytes.NewBuffer(req.Preview)
+	//		if moreBody {
+	//			r = io.MultiReader(r, &continueReader{buf: b})
+	//		}
+	//		bodyReader = ioutil.NopCloser(r)
+	//	} else {
+	//		bodyReader = ioutil.NopCloser(newChunkedReader(b))
+	//	}
+	//}
+	//
+	//// Construct the http.Request.
+	//if rawReqHdr != nil {
+	//	req.Request, err = http.ReadRequest(bufio.NewReader(bytes.NewBuffer(rawReqHdr)))
+	//	if err != nil {
+	//		return nil, fmt.Errorf("error while parsing HTTP request: %v", err)
+	//	}
+	//
+	//	if req.Method == "REQMOD" {
+	//		req.Request.Body = bodyReader
+	//	} else {
+	//		req.Request.Body = emptyReader(0)
+	//	}
+	//}
+	//
+	//// Construct the http.Response.
+	//if rawRespHdr != nil {
+	//	request := req.Request
+	//	if request == nil {
+	//		request, _ = http.NewRequest("GET", "/", nil)
+	//	}
+	//	req.Response, err = http.ReadResponse(bufio.NewReader(bytes.NewBuffer(rawRespHdr)), request)
+	//	if err != nil {
+	//		return nil, fmt.Errorf("error while parsing HTTP response: %v", err)
+	//	}
+	//
+	//	if req.Method == "RESPMOD" {
+	//		req.Response.Body = bodyReader
+	//	} else {
+	//		req.Response.Body = emptyReader(0)
+	//	}
+	//}
 
-		if req.Method == "REQMOD" {
-			req.Request.Body = bodyReader
-		} else {
-			req.Request.Body = emptyReader(0)
-		}
-	}
-
-	// Construct the http.Response.
-	if rawRespHdr != nil {
-		request := req.Request
-		if request == nil {
-			request, _ = http.NewRequest("GET", "/", nil)
-		}
-		req.Response, err = http.ReadResponse(bufio.NewReader(bytes.NewBuffer(rawRespHdr)), request)
-		if err != nil {
-			return nil, fmt.Errorf("error while parsing HTTP response: %v", err)
-		}
-
-		if req.Method == "RESPMOD" {
-			req.Response.Body = bodyReader
-		} else {
-			req.Response.Body = emptyReader(0)
-		}
-	}
-
-	return
+	return nil, nil
 }
 
 // An emptyReader is an io.ReadCloser that always returns os.EOF.
