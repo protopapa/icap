@@ -58,7 +58,9 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 			}
 			break
 		}
-		fmt.Printf("Size read: %v\n", size)
+		if size < 100 {
+			break
+		}
 		buffer.Write(p)
 	}
 
