@@ -58,10 +58,10 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 			}
 			break
 		}
+		buffer.Write(p)
 		if size < 100 {
 			break
 		}
-		buffer.Write(p)
 	}
 
 	fmt.Printf("buffer alltogether is: %s\n", buffer.String())
