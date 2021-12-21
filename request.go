@@ -45,19 +45,18 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 
 	var buffer bytes.Buffer
 	for {
-		ba, err := b.Reader.ReadBytes('\n')
-		fmt.Printf("The byte: %s", string(ba))
-		buffer.Write(ba)
+		l, isPrefix, err := b.Reader.ReadLine()
+		fmt.Printf("The line: %s", string(l))
+		buffer.Write(l)
+
+		if !isPrefix {
+			break
+		}
 		if err != nil {
 			fmt.Printf("request.ReadRequest error: %s\n", err)
 			if err == io.EOF {
 				break
 			}
-		}
-
-		if len(ba) == 0 {
-			fmt.Printf("nothing more to read")
-			break
 		}
 	}
 
