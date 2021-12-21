@@ -43,6 +43,8 @@ type Request struct {
 // ReadRequest reads and parses a request from b.
 func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 
+	fmt.Printf("Inside ReadRequest\n")
+
 	var buffer bytes.Buffer
 	for {
 		var p []byte
@@ -55,6 +57,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 			}
 			break
 		}
+		fmt.Printf("p: %s", string(p))
 		buffer.Write(p)
 	}
 
