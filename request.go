@@ -53,6 +53,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 				if err == io.EOF {
 					break
 				}
+				break
 			}
 
 			buffer.Write(l)
