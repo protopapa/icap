@@ -60,7 +60,6 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 			}
 			break
 		}
-		fmt.Printf("p: %s", string(p))
 		buffer.Write(p)
 	}
 
