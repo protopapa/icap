@@ -48,10 +48,8 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 	var buffer bytes.Buffer
 	for {
 		var p []byte
-		if b.Reader.Buffered() > 0 {
-			fmt.Printf("bytes to be read: %s\n", b.Reader.Buffered())
-			p = make([]byte, b.Reader.Buffered())
-		}
+		p = make([]byte, 4096)
+
 		_, err := b.Reader.Read(p)
 		if err != nil {
 			fmt.Printf("error occured while reading %s\n", err)
