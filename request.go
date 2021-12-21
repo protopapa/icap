@@ -48,7 +48,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 	var buffer bytes.Buffer
 	for {
 		var p = make([]byte, 4096)
-		size, err := b.Reader.Read(p)
+		_, err := b.Reader.Read(p)
 		buffer.Write(p)
 
 		if err != nil {
