@@ -45,14 +45,13 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 
 	var buffer bytes.Buffer
 	for {
-		fmt.Printf("ReadRequest\n")
 		ba, err := b.Reader.ReadBytes('\n')
+		fmt.Printf("The first byte: %s", string(ba))
 		if err != nil {
 			fmt.Printf("error occured while readline: %s", err)
 			if err == io.EOF {
 				break
 			}
-			//return "", err
 		}
 		buffer.Write(ba)
 	}
