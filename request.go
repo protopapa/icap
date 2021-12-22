@@ -10,8 +10,8 @@ package icap
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
+	"github.com/protopapa/icap/log"
 	"io"
 	"net/http"
 	"net/textproto"
@@ -50,9 +50,8 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 		buffer.Write(p)
 
 		if err != nil {
-			fmt.Printf("error occured while reading %s\n", err)
+			log.Logfile.Printf("error at ReadRequest %s\n", err)
 			if err == io.EOF {
-				fmt.Printf("End of File")
 				break
 			}
 			break
@@ -63,8 +62,8 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 		}
 	}
 
-	fmt.Printf("buffer alltogether is: %s\n", buffer.String())
-	return nil, errors.New("a normal error when you do not know what you doing")
+	log.Logfile.Printf("go-icap ReadRequest: %s\n", buffer.String())
+	return req, nil // No HTTP headers or body. something to give back and continue with the handler.
 }
 
 // An emptyReader is an io.ReadCloser that always returns os.EOF.
