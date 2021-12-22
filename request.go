@@ -11,7 +11,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/protopapa/icap/log"
 	"io"
 	"net/http"
 	"net/textproto"
@@ -50,7 +49,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 		buffer.Write(p)
 
 		if err != nil {
-			log.Logfile.Printf("error at ReadRequest %s\n", err)
+			Logfile.Printf("error at ReadRequest %s\n", err)
 			if err == io.EOF {
 				break
 			}
@@ -62,7 +61,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 		}
 	}
 
-	log.Logfile.Printf("go-icap ReadRequest: %s\n", buffer.String())
+	Logfile.Printf("go-icap ReadRequest: %s\n", buffer.String())
 	return req, nil // No HTTP headers or body. something to give back and continue with the handler.
 }
 
