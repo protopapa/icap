@@ -10,6 +10,7 @@ package icap
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -41,10 +42,9 @@ type Request struct {
 
 // ReadRequest reads and parses a request from b.
 func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
-
 	var buffer bytes.Buffer
 	for {
-		var p = make([]byte, 4096)
+		var p = make([]byte, 100)
 		size, err := b.Reader.Read(p)
 		buffer.Write(p)
 
@@ -56,13 +56,13 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 			break
 		}
 
-		if size < 4096 {
+		if size < 100 {
 			break
 		}
 	}
 
-	Logfile.Printf("go-icap ReadRequest: %s\n", buffer.String())
-	return req, nil // No HTTP headers or body. something to give back and continue with the handler.
+	Logfile.Printf("go-icap ReadRequest: %s\n", string(buffer.Bytes()))
+	return nil, errors.New("a normal error when you do not know what you doing")
 }
 
 // An emptyReader is an io.ReadCloser that always returns os.EOF.
