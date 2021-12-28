@@ -103,7 +103,7 @@ func (c *conn) serve() {
 
 	w, err := c.readRequest()
 	if err != nil {
-		log.Println("error while reading request:", err)
+		//log.Println("error while reading request:", err)
 		c.rwc.Close()
 		return
 	}
