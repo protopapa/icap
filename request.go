@@ -50,7 +50,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 	// Read first line.
 	var s string
 	s, err = tp.ReadLine()
-	fmt.Printf("request.ReadRequest, s: %s\n", s)
+	fmt.Printf("s: %s\n", s)
 	if err != nil {
 		if err == io.EOF {
 			err = io.ErrUnexpectedEOF
@@ -63,6 +63,8 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 		return nil, &badStringError{"malformed ICAP request", s}
 	}
 	req.Method, req.RawURL, req.Proto = f[0], f[1], f[2]
+
+	fmt.Printf("methos: %s, rawUrl: %s, proto: %s ", req.Method, req.RawURL, req.Proto)
 
 	req.URL, err = url.ParseRequestURI(req.RawURL)
 	if err != nil {
@@ -123,6 +125,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 	if initialOffset > 0 {
 		junk := make([]byte, initialOffset)
 		_, err = io.ReadFull(b, junk)
+		fmt.Printf("junk: %s\n", string(junk))
 		if err != nil {
 			return nil, err
 		}
@@ -130,6 +133,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 	if reqHdrLen > 0 {
 		rawReqHdr = make([]byte, reqHdrLen)
 		_, err = io.ReadFull(b, rawReqHdr)
+		fmt.Printf("rawReqHdr: %s\n", string(rawReqHdr))
 		if err != nil {
 			return nil, err
 		}
@@ -137,6 +141,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 	if respHdrLen > 0 {
 		rawRespHdr = make([]byte, respHdrLen)
 		_, err = io.ReadFull(b, rawRespHdr)
+		fmt.Printf("rawRespHdr: %s\n", string(rawRespHdr))
 		if err != nil {
 			return nil, err
 		}
@@ -180,6 +185,8 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 		}
 	}
 
+	fmt.Printf("req: %+v\n", req)
+
 	// Construct the http.Response.
 	if rawRespHdr != nil {
 		request := req.Request
@@ -197,6 +204,8 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 			req.Response.Body = emptyReader(0)
 		}
 	}
+
+	fmt.Printf("req/resp: %+v\n", req)
 
 	return
 }
