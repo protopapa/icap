@@ -76,6 +76,8 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 		return nil, err
 	}
 
+	fmt.Printf("req.Header: %s \n", req.Header)
+
 	s = req.Header.Get("Encapsulated")
 	if s == "" {
 		return req, nil // No HTTP headers or body.
@@ -185,7 +187,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 		}
 	}
 
-	fmt.Printf("req: %+v \n", req.Request)
+	fmt.Printf("req: %+v\n", req.Request)
 
 	// Construct the http.Response.
 	if rawRespHdr != nil {
