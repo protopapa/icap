@@ -64,7 +64,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 	}
 	req.Method, req.RawURL, req.Proto = f[0], f[1], f[2]
 
-	fmt.Printf("methos: %s, rawUrl: %s, proto: %s ", req.Method, req.RawURL, req.Proto)
+	fmt.Printf("method: %s, rawUrl: %s, proto: %s \n", req.Method, req.RawURL, req.Proto)
 
 	req.URL, err = url.ParseRequestURI(req.RawURL)
 	if err != nil {
@@ -125,7 +125,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 	if initialOffset > 0 {
 		junk := make([]byte, initialOffset)
 		_, err = io.ReadFull(b, junk)
-		fmt.Printf("junk: %s\n", string(junk))
+		fmt.Printf("junk: %s \n", string(junk))
 		if err != nil {
 			return nil, err
 		}
@@ -133,7 +133,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 	if reqHdrLen > 0 {
 		rawReqHdr = make([]byte, reqHdrLen)
 		_, err = io.ReadFull(b, rawReqHdr)
-		fmt.Printf("rawReqHdr: %s\n", string(rawReqHdr))
+		fmt.Printf("rawReqHdr: %s \n", string(rawReqHdr))
 		if err != nil {
 			return nil, err
 		}
@@ -141,7 +141,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 	if respHdrLen > 0 {
 		rawRespHdr = make([]byte, respHdrLen)
 		_, err = io.ReadFull(b, rawRespHdr)
-		fmt.Printf("rawRespHdr: %s\n", string(rawRespHdr))
+		fmt.Printf("rawRespHdr: %s \n", string(rawRespHdr))
 		if err != nil {
 			return nil, err
 		}
@@ -185,7 +185,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 		}
 	}
 
-	fmt.Printf("req: %+v\n", req)
+	fmt.Printf("req: %+v \n", req.Request)
 
 	// Construct the http.Response.
 	if rawRespHdr != nil {
@@ -205,7 +205,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 		}
 	}
 
-	fmt.Printf("req/resp: %+v\n", req)
+	fmt.Printf("req/resp: %+v \n", req.Response)
 
 	return
 }
