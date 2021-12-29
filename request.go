@@ -74,6 +74,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 	}
 
 	Logfile.Printf("req.Header: %s \n", req.Header)
+	fmt.Printf("req.Header: %s \n", req.Header)
 
 	s = req.Header.Get("Encapsulated")
 	if s == "" {
@@ -125,6 +126,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 		junk := make([]byte, initialOffset)
 		_, err = io.ReadFull(b, junk)
 		Logfile.Printf("junk: %s \n", string(junk))
+		fmt.Printf("junk: %s \n", string(junk))
 		if err != nil {
 			return nil, err
 		}
@@ -133,6 +135,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 		rawReqHdr = make([]byte, reqHdrLen)
 		_, err = io.ReadFull(b, rawReqHdr)
 		Logfile.Printf("rawReqHdr: %s \n", string(rawReqHdr))
+		fmt.Printf("rawReqHdr: %s \n", string(rawReqHdr))
 		if err != nil {
 			return nil, err
 		}
@@ -141,6 +144,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 		rawRespHdr = make([]byte, respHdrLen)
 		_, err = io.ReadFull(b, rawRespHdr)
 		Logfile.Printf("rawRespHdr: %s \n", string(rawRespHdr))
+		fmt.Printf("rawRespHdr: %s \n", string(rawRespHdr))
 		if err != nil {
 			return nil, err
 		}
@@ -185,6 +189,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 	}
 
 	Logfile.Printf("req: %+v\n", req.Request)
+	fmt.Printf("req: %+v\n", req.Request)
 
 	// Construct the http.Response.
 	if rawRespHdr != nil {
@@ -205,6 +210,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 	}
 
 	Logfile.Printf("req/resp: %+v \n", req.Response)
+	fmt.Printf("req/resp: %+v \n", req.Response)
 
 	return
 }
