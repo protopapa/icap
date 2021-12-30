@@ -188,7 +188,9 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 		}
 	}
 
-	Logfile.Printf("req: %+v\n", req.Request)
+	Logfile.Printf("req: %+v\n", req)
+	Logfile.Printf("req.Request: %+v\n", req.Request)
+	fmt.Printf("req: %+v\n", req)
 	fmt.Printf("req: %+v\n", req.Request)
 
 	// Construct the http.Response.

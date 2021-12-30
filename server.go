@@ -10,6 +10,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -71,6 +72,7 @@ func (c *conn) readRequest() (w *respWriter, err error) {
 	w.conn = c
 	w.req = req
 	w.header = make(http.Header)
+	Logfile.Printf("server.readRequest.w: %+v\n", w)
 	return w, nil
 }
 
@@ -103,7 +105,9 @@ func (c *conn) serve() {
 
 	w, err := c.readRequest()
 	if err != nil {
-		//log.Println("error while reading request:", err)
+		if err != io.ErrUnexpectedEOF {
+			Logfile.Println("error while reading request:", err)
+		}
 		c.rwc.Close()
 		return
 	}
@@ -147,6 +151,7 @@ func (srv *Server) Serve(l net.Listener) error {
 		handler = DefaultServeMux
 	}
 
+	fmt.Printf("handler: %+v\n", handler)
 	for {
 		rw, e := l.Accept()
 		if e != nil {
