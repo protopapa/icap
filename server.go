@@ -72,7 +72,7 @@ func (c *conn) readRequest() (w *respWriter, err error) {
 	w.conn = c
 	w.req = req
 	w.header = make(http.Header)
-	Logfile.Printf("server.readRequest.w: %+v\n", w)
+	fmt.Printf("w: %+v\n", w)
 	return w, nil
 }
 
@@ -151,7 +151,6 @@ func (srv *Server) Serve(l net.Listener) error {
 		handler = DefaultServeMux
 	}
 
-	fmt.Printf("handler: %+v\n", handler)
 	for {
 		rw, e := l.Accept()
 		if e != nil {
