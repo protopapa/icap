@@ -72,7 +72,7 @@ func (c *conn) readRequest() (w *respWriter, err error) {
 	w.conn = c
 	w.req = req
 	w.header = make(http.Header)
-	fmt.Printf("w: %+v\n", w)
+	fmt.Printf("w.req: %+v\n", w.req)
 	return w, nil
 }
 
@@ -147,6 +147,7 @@ func (srv *Server) ListenAndServe() error {
 func (srv *Server) Serve(l net.Listener) error {
 	defer l.Close()
 	handler := srv.Handler
+	fmt.Printf("Handler: %+v\n", handler)
 	if handler == nil {
 		handler = DefaultServeMux
 	}
