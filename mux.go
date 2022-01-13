@@ -5,6 +5,7 @@
 package icap
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -90,7 +91,7 @@ func (mux *ServeMux) ServeICAP(w ResponseWriter, r *Request) {
 
 // Handle registers the handler for the given pattern.
 func (mux *ServeMux) Handle(handler Handler) {
-
+	fmt.Printf("rregister")
 	mux.h = handler
 }
 
