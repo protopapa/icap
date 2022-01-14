@@ -5,7 +5,6 @@
 package icap
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -19,11 +18,11 @@ import (
 //
 // For more details, see the documentation for http.ServeMux
 type ServeMux struct {
-	h Handler
+	m map[string]Handler
 }
 
 // NewServeMux allocates and returns a new ServeMux.
-func NewServeMux() *ServeMux { return &ServeMux{} }
+func NewServeMux() *ServeMux { return &ServeMux{make(map[string]Handler)} }
 
 // DefaultServeMux is the default ServeMux used by Serve.
 var DefaultServeMux = NewServeMux()
@@ -60,20 +59,20 @@ func cleanPath(p string) string {
 
 // Find a handler on a handler map given a path string
 // Most-specific (longest) pattern wins
-//func (mux *ServeMux) match(path string) Handler {
-//	var h Handler
-//	var n = 0
-//	for k, v := range mux.m {
-//		if !pathMatch(k, path) {
-//			continue
-//		}
-//		if h == nil || len(k) > n {
-//			n = len(k)
-//			h = v
-//		}
-//	}
-//	return h
-//}
+func (mux *ServeMux) match(path string) Handler {
+	var h Handler
+	var n = 0
+	for k, v := range mux.m {
+		if !pathMatch(k, path) {
+			continue
+		}
+		if h == nil || len(k) > n {
+			n = len(k)
+			h = v
+		}
+	}
+	return h
+}
 
 // ServeICAP dispatches the request to the handler whose
 // pattern most closely matches the request URL.
@@ -85,31 +84,47 @@ func (mux *ServeMux) ServeICAP(w ResponseWriter, r *Request) {
 		return
 	}
 	// Host-specific pattern takes precedence over generic ones
-	h := mux.h
+	h := mux.match(r.URL.Host + r.URL.Path)
+	if h == nil {
+		h = mux.match(r.URL.Path)
+	}
+	if h == nil {
+		h = NotFoundHandler()
+	}
 	h.ServeICAP(w, r)
 }
 
 // Handle registers the handler for the given pattern.
-func (mux *ServeMux) Handle(handler Handler) {
-	fmt.Printf("rregister")
-	mux.h = handler
+func (mux *ServeMux) Handle(pattern string, handler Handler) {
+	if pattern == "" {
+		panic("icap: invalid pattern " + pattern)
+	}
+
+	mux.m[pattern] = handler
+
+	// Helpful behavior:
+	// If pattern is /tree/, insert permanent redirect for /tree.
+	n := len(pattern)
+	if n > 0 && pattern[n-1] == '/' {
+		mux.m[pattern[0:n-1]] = RedirectHandler(pattern, http.StatusMovedPermanently)
+	}
 }
 
 // HandleFunc registers the handler function for the given pattern.
-func (mux *ServeMux) HandleFunc(handler func(ResponseWriter, *Request)) {
-	mux.Handle(HandlerFunc(handler))
+func (mux *ServeMux) HandleFunc(pattern string, handler func(ResponseWriter, *Request)) {
+	mux.Handle(pattern, HandlerFunc(handler))
 }
 
 // Handle registers the handler for the given pattern
 // in the DefaultServeMux.
 // The documentation for ServeMux explains how patterns are matched.
-func Handle(pattern string, handler Handler) { DefaultServeMux.Handle(handler) }
+func Handle(pattern string, handler Handler) { DefaultServeMux.Handle(pattern, handler) }
 
 // HandleFunc registers the handler function for the given pattern
 // in the DefaultServeMux.
 // The documentation for ServeMux explains how patterns are matched.
-func HandleFunc(handler func(ResponseWriter, *Request)) {
-	DefaultServeMux.HandleFunc(handler)
+func HandleFunc(pattern string, handler func(ResponseWriter, *Request)) {
+	DefaultServeMux.HandleFunc(pattern, handler)
 }
 
 // NotFound replies to the request with an HTTP 404 not found error.
