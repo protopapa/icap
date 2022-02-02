@@ -61,7 +61,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 	req.Method, req.RawURL, req.Proto = f[0], f[1], f[2]
 	Std.Printf("req.Method: %s, req.RawURL: %s, req.Proto: %s\n", req.Method, req.RawURL, req.Proto)
 
-	req.URL, err = url.ParseRequestURI("/filter")
+	req.URL, err = url.ParseRequestURI("/")
 	if err != nil {
 		return nil, err
 	}
